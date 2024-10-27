@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #121212;
+            margin: 0;
+            color: #e0e0e0;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+        }
+        .video-container {
+            margin-right: 20px;
+        }
+        .detection-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 600px;
+        }
+        .detected-sign-box {
+            width: 300px;
+            height: 100px;
+            background: #333;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f9f9f9;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        }
+        .text-box {
+            width: 300px;
+            height: 480px;
+            background: #252525;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .text-box textarea {
+            width: 100%;
+            height: 100%;
+            font-size: 1.2rem;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            color: #e0e0e0;
+        }
+        img {
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+        /* Scrollbar styling */
+        .text-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .text-box::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        .text-box::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
+        }
+        .text-box::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="video-container">
+            <img src="{{ url_for('video_feed') }}" width="800" height="600">
+        </div>
+        <div class="detection-container">
+            <!-- Detected sign at top right -->
+            <div class="detected-sign-box" id="detected-sign">...</div>
+            <!-- Typed sign box at bottom right -->
+            <div class="text-box">
+                <textarea id="detected-signs" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let previousSign = '';  // To store the previous detected sign
+
+    function fetchSign() {
+        fetch('/get_sign')
+            .then(response => response.json())
+            .then(data => {
+                let detectedSign = data.detected_sign;
+
+                // Show detected sign in the top box
+                document.getElementById('detected-sign').textContent = detectedSign || 'Unknown';
+
+                // Check if the detected sign is valid and different from the previous one
+                if (detectedSign && detectedSign !== 'Unknown' && detectedSign !== previousSign) {
+                    let textBox = document.getElementById('detected-signs');
+                    textBox.value += detectedSign + "\n";  // Append new detection
+                    textBox.scrollTop = textBox.scrollHeight;  // Scroll to the bottom
+                    previousSign = detectedSign;  // Update the previous sign
+                }
+            });
+    }
+    setInterval(fetchSign, 500);  // Fetch detected sign every 500ms
+    </script>
+</body>
+</html>
